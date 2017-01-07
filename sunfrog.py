@@ -111,24 +111,57 @@ def getSubcategoryUrl(subcategory):
     paged2_url = subcategory.replace('&navpill', '')
     paged2_url = paged2_url.replace('/search/index.cfm', '/search/paged2.cfm')
     return urlparse.urljoin(root_url, paged2_url)
-        
 
+## run multi-thred by pool job        
+def pool(job,params):
+    print 'Initializing...'
+    # Build our `map` parameters
+    # Initialize a pool, 5 threads in this case
+    pool = workerpool.WorkerPool(size=32)
+    # The ``download`` method will be called with a line from the second 
+    # parameter for each job.
+    pool.map(job, params)
+    # Send shutdown jobs to all threads, and wait until all the jobs have been completed
+    pool.shutdown()
+    pool.wait()
+    print 'job well done!'
     
 ########################
+
+# Craw plan:
+#   Enter: Sunfrog page 
+#   From categories element get all shirt category
+#   There are 2 type of category:
+#       Type 1: 'https://www.sunfrog.com/Music/'
+#       Category that contain subcategory and can be load more by:
+#       https://www.sunfrog.com/search/paged2.cfm?schTrmFilter=sales&search=Def%20Leppard&cID=71&offset=41 ( just change the offset and search param)
+#       Type2: https://www.sunfrog.com/artist/paged2.cfm?offset=40&schTrmFilter=sales&searchart=
+#       Do not have subcatgory and in order to load more we have to use this link:
+#       https://www.sunfrog.com/artist/paged2.cfm?offset=40&schTrmFilter=sales&searchart=
+#       It will not have search param for us to determite between like marvel and disney
+#       So we have to use session of request to do the trick
+
 root_url = 'https://www.sunfrog.com' 
 shirt_categories_urls = getAllCategory(root_url)
-## get all sub-category
 all_subcategory = []
-for url in shirt_categories_urls[4:5]:
-    all_subcategory.extend(getSubCategoryFromCategory(url))
-    print len(all_subcategory)
 
+## Get all subcatory for Type 1 use pool to multi-thread the job
+def getSubcategoryJob(categories_url):
+    all_subcategory.extend(getSubCategoryFromCategory(categories_url))
+    
+pool(getSubcategoryJob, shirt_categories_urls)
+print all_subcategory
 ########################
+
+# Dealing with type 1 run this for demo
 biker = all_subcategory[0]
 base_biker_url = getSubcategoryUrl(biker)
 biker_imgs = getAllDesignFromASubcategory(base_biker_url)
-
+print biker_imgs
 ########################
+
+# Dealing with type 2 run this for demo
 load_more_url='https://www.sunfrog.com/artist/paged2.cfm?schTrmFilter=sales'
 marvel = shirt_categories_urls[2]
 marvel_imgs = getAllDesignFromSpecialcategory(marvel, load_more_url)
+print marvel_imgs

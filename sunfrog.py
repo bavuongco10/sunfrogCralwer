@@ -126,6 +126,9 @@ def pool(job,params):
     pool.wait()
     print 'job well done!'
     
+    
+# RUN ALL FUNCTION ABOVE FIRST
+########################
 ########################
 
 # Craw plan:
@@ -154,7 +157,7 @@ print all_subcategory
 ########################
 
 # Dealing with type 1 run this for demo
-biker = all_subcategory[0]
+biker = all_subcategory[39]
 base_biker_url = getSubcategoryUrl(biker)
 biker_imgs = getAllDesignFromASubcategory(base_biker_url)
 print biker_imgs
